@@ -42,6 +42,7 @@
     ]
   },
   "devDependencies": {
+    "@material-ui/icons": "^4.11.2",
     "@types/styled-components": "^5.1.11",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
