@@ -20,7 +20,9 @@ import {
   TextField,
   Button,
   LinearProgress,
+  Snackbar,
 } from "@material-ui/core";
+import Alert from "@material-ui/lab/Alert";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { useAppSelector, useAppDispatch } from "../app/hooks";
 import {
@@ -91,6 +93,9 @@ const TaskList = () => {
     <Wrapper>
       <ListBox elevation={3}>
         {task.loading && <LinearProgress />}
+        <Snackbar open={!!task.error} autoHideDuration={6000}>
+          <Alert severity="error">{task.error}</Alert>
+        </Snackbar>
         <List
           subheader={
             <HeadBox onSubmit={handleCreateTask}>
@@ -134,7 +139,6 @@ const TaskList = () => {
                     {subTasks?.map((subTask, subTaskIndex) => {
                       const subTaskKey = subTask.title + subTaskIndex;
                       const subTaskLabel = subTask.title;
-                      console.log(subTask);
                       const subTaskChecked = subTask.done;
                       return (
                         <SubList button key={subTaskKey}>

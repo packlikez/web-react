@@ -19,26 +19,33 @@ type CreateTask = Pick<Task, "title">;
 
 interface TaskListState {
   loading: boolean;
+  error: string;
   tasks: Task[];
 }
 
 const initialState: TaskListState = {
   loading: false,
+  error: "",
   tasks: [],
 };
 
-export const fetchTasks = createAsyncThunk(name + "/fetchTasks", async () => {
-  const url = "/tasks";
-  const res = await http.get(url);
-  return res.data;
-});
+export const fetchTasks = createAsyncThunk(
+  name + "/fetchTasks",
+  async (state, thunkAPI) => {
+    const url = "/tasks";
+    const res = await http.get(url);
+    if (res.error) return thunkAPI.rejectWithValue(res.error);
+    return res;
+  }
+);
 
 export const createTask = createAsyncThunk(
   name + "/createTask",
-  async (payload: CreateTask) => {
+  async (payload: CreateTask, thunkAPI) => {
     const url = "/tasks";
     const res = await http.post(url, payload);
-    return res.data;
+    if (res.error) return thunkAPI.rejectWithValue(res.error);
+    return { data: res.data };
   }
 );
 
@@ -52,7 +59,7 @@ export const updateTask = createAsyncThunk(
     const { taskId, done } = payload;
     const url = `/tasks/${taskId}`;
     const res = await http.patch(url, { done });
-    return { taskId, data: res.data.data };
+    return { taskId, data: res.data };
   }
 );
 
@@ -66,7 +73,7 @@ export const createSubTask = createAsyncThunk(
     const { taskId, title } = payload;
     const url = `/tasks/${taskId}/subTasks`;
     const res = await http.post(url, { title });
-    return { taskId, data: res.data.data };
+    return { taskId, data: res.data };
   }
 );
 
@@ -81,7 +88,7 @@ export const updateSubTask = createAsyncThunk(
     const { taskId, subTaskId, done } = payload;
     const url = `/tasks/${taskId}/subTasks/${subTaskId}`;
     const res = await http.patch(url, { done });
-    return { taskId, subTaskId, data: res.data.data };
+    return { taskId, subTaskId, data: res.data };
   }
 );
 
@@ -106,7 +113,13 @@ const taskListSlice = createSlice({
       .addCase(createTask.pending, (state) => {
         state.loading = true;
       })
-      .addCase(createTask.rejected, (state) => {
+      .addCase(createTask.rejected, (state, action: any) => {
+        const { message, data, statusCode } = action.payload;
+        let error = message;
+        if (statusCode === 400) {
+          error = getErrorMsg(data);
+        }
+        state.error = error;
         state.loading = false;
       })
       .addCase(createTask.fulfilled, (state, action) => {
@@ -118,7 +131,13 @@ const taskListSlice = createSlice({
       .addCase(updateTask.pending, (state) => {
         state.loading = true;
       })
-      .addCase(updateTask.rejected, (state) => {
+      .addCase(updateTask.rejected, (state, action: any) => {
+        const { message, data, statusCode } = action.payload;
+        let error = message;
+        if (statusCode === 400) {
+          error = getErrorMsg(data);
+        }
+        state.error = error;
         state.loading = false;
       })
       .addCase(updateTask.fulfilled, (state, action) => {
@@ -132,7 +151,13 @@ const taskListSlice = createSlice({
       .addCase(createSubTask.pending, (state) => {
         state.loading = true;
       })
-      .addCase(createSubTask.rejected, (state) => {
+      .addCase(createSubTask.rejected, (state, action: any) => {
+        const { message, data, statusCode } = action.payload;
+        let error = message;
+        if (statusCode === 400) {
+          error = getErrorMsg(data);
+        }
+        state.error = error;
         state.loading = false;
       })
       .addCase(createSubTask.fulfilled, (state, action) => {
@@ -146,7 +171,13 @@ const taskListSlice = createSlice({
       .addCase(updateSubTask.pending, (state) => {
         state.loading = true;
       })
-      .addCase(updateSubTask.rejected, (state) => {
+      .addCase(updateSubTask.rejected, (state, action: any) => {
+        const { message, data, statusCode } = action.payload;
+        let error = message;
+        if (statusCode === 400) {
+          error = getErrorMsg(data);
+        }
+        state.error = error;
         state.loading = false;
       })
       .addCase(updateSubTask.fulfilled, (state, action) => {
@@ -166,6 +197,12 @@ const taskListSlice = createSlice({
       });
   },
 });
+
+function getErrorMsg(obj: any) {
+  return Object.keys(obj)
+    .map((key) => obj[key])
+    .join(", ");
+}
 
 export const selectTask = (state: RootState) => state.task;
 
