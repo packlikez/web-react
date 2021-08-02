@@ -24,7 +24,7 @@ import {
 } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import { useAppSelector, useAppDispatch } from "../app/hooks";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import {
   selectTask,
   fetchTasks,
@@ -35,15 +35,14 @@ import {
   SubTask,
   createSubTask,
 } from "./taskListSlice";
-import useForm from "../app/useForm";
+import useForm from "../../app/useForm";
 
 interface Form {
   task: string;
-  // eslint-disable-next-line @typescript-eslint/ban-types
   subTask: { [k in number]: string };
 }
 
-const TaskList = () => {
+const TaskList: FC = () => {
   const task = useAppSelector(selectTask);
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(-1);

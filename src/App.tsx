@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import TaskList from "./features/TaskList";
+import TaskList from "./features/task/TaskList";
 
 const App: FC = () => {
   return (

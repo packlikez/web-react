@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-import http from "../utils/http";
-import { RootState } from "../app/store";
+import http from "../../utils/http";
+import { RootState } from "../../app/store";
 
 const name = "taskList";
 
@@ -198,12 +198,12 @@ const taskListSlice = createSlice({
   },
 });
 
-function getErrorMsg(obj: any) {
+function getErrorMsg(obj: any): string {
   return Object.keys(obj)
     .map((key) => obj[key])
     .join(", ");
 }
 
-export const selectTask = (state: RootState) => state.task;
+export const selectTask = (state: RootState): TaskListState => state.task;
 
 export default taskListSlice.reducer;
