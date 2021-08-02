@@ -1,4 +1,10 @@
-import React, { useState, Fragment, FC, SyntheticEvent } from "react";
+import React, {
+  useState,
+  Fragment,
+  FC,
+  SyntheticEvent,
+  useEffect,
+} from "react";
 import styled from "styled-components";
 
 import {
@@ -15,35 +21,15 @@ import {
   LinearProgress,
 } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import { useAppSelector } from "../app/hooks";
-import { selectTask } from "./taskListSlice";
-
-const todosMock = [
-  {
-    label: "Task1",
-    done: false,
-  },
-  {
-    label: "Task2",
-    done: false,
-  },
-  {
-    label: "Task3",
-    done: false,
-    subTasks: [
-      { label: "Sub Task 1", done: false },
-      { label: "Sub Task 1", done: false },
-    ],
-  },
-  {
-    label: "Task4",
-    done: false,
-  },
-];
+import { useAppSelector, useAppDispatch } from "../app/hooks";
+import { selectTask, fetchTasks, createTask } from "./taskListSlice";
+import useForm from "../app/useForm";
 
 const TaskList = () => {
   const task = useAppSelector(selectTask);
+  const dispatch = useAppDispatch();
   const [open, setOpen] = useState(-1);
+  const form = useForm<{ task: string }>({ task: "" });
 
   const handleClick = (taskIndex: number) => () => {
     if (open === taskIndex) return setOpen(-1);
@@ -73,6 +59,14 @@ const TaskList = () => {
       // });
     };
 
+  const handleCreateTask = () => {
+    dispatch(createTask({ title: form.values.task }));
+  };
+
+  useEffect(() => {
+    dispatch(fetchTasks());
+  }, []);
+
   return (
     <Wrapper>
       <ListBox elevation={3}>
@@ -81,16 +75,24 @@ const TaskList = () => {
           subheader={
             <HeadBox>
               <HeadText>Todo</HeadText>
-              <TextField label="new task name" />
-              <Button variant="contained" color="primary">
+              <TextField
+                label="new task name"
+                value={form.values.task}
+                onChange={(e) => form.onChange("task")(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleCreateTask}
+              >
                 Create
               </Button>
             </HeadBox>
           }
         >
           {task.tasks.map((task, taskIndex) => {
-            const taskKey = task.label + taskIndex;
-            const label = task.label;
+            const taskKey = task.title + taskIndex;
+            const label = task.title;
             const isOpen = taskIndex === open;
             const subTasks = task.subTasks;
             const checked = task.done;
@@ -110,8 +112,8 @@ const TaskList = () => {
                 <Collapse in={isOpen} timeout="auto" unmountOnExit>
                   <List component="div" disablePadding>
                     {subTasks?.map((subTask, subTaskIndex) => {
-                      const subTaskKey = subTask.label + subTaskIndex;
-                      const subTaskLabel = subTask.label;
+                      const subTaskKey = subTask.title + subTaskIndex;
+                      const subTaskLabel = subTask.title;
                       const subTaskChecked = subTask.done;
                       return (
                         <SubList button key={subTaskKey}>
