@@ -7,11 +7,13 @@ const name = "taskList";
 
 interface Task {
   id?: number;
-  label: string;
+  title: string;
   done: boolean;
   subTasks: SubTask[];
 }
 type SubTask = Omit<Task, "subTasks">;
+
+type CreateTask = Pick<Task, "title">;
 
 interface TaskListState {
   loading: boolean;
@@ -24,15 +26,15 @@ const initialState: TaskListState = {
 };
 
 export const fetchTasks = createAsyncThunk(name + "/fetchTasks", async () => {
-  const url = "/task";
+  const url = "/tasks";
   const res = await http.get(url);
   return res.data;
 });
 
 export const createTask = createAsyncThunk(
   name + "/createTask",
-  async (payload: Task) => {
-    const url = "/task";
+  async (payload: CreateTask) => {
+    const url = "/tasks";
     const res = await http.post(url, payload);
     return res.data;
   }
@@ -46,7 +48,7 @@ export const updateTask = createAsyncThunk(
   name + "/updateTask",
   async (payload: UpdateTaskPayload) => {
     const { taskId, done } = payload;
-    const url = `/task/${taskId}`;
+    const url = `/tasks/${taskId}`;
     const res = await http.patch(url, { done });
     return { taskId, data: res.data };
   }
@@ -60,7 +62,7 @@ export const createSubTask = createAsyncThunk(
   name + "/createSubTask",
   async (payload: CreateSubTaskPayload) => {
     const { taskId, data } = payload;
-    const url = `/task/${taskId}/subTasks`;
+    const url = `/tasks/${taskId}/subTasks`;
     const res = await http.post(url, data);
     return { taskId, data: res.data };
   }
@@ -75,7 +77,7 @@ export const updateSubTask = createAsyncThunk(
   name + "/updateSubTask",
   async (payload: UpdateSubTaskPayload) => {
     const { taskId, subTaskId, data } = payload;
-    const url = `/task/${taskId}/subTasks/${subTaskId}`;
+    const url = `/tasks/${taskId}/subTasks/${subTaskId}`;
     const res = await http.patch(url, data);
     return { taskId, subTaskId, data: res.data };
   }
@@ -95,7 +97,7 @@ const taskListSlice = createSlice({
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks = action.payload;
+        state.tasks = action.payload.data;
       });
 
     builder
@@ -107,7 +109,7 @@ const taskListSlice = createSlice({
       })
       .addCase(createTask.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks.push(action.payload);
+        state.tasks.push(action.payload.data);
       });
 
     builder
@@ -119,7 +121,7 @@ const taskListSlice = createSlice({
       })
       .addCase(updateTask.fulfilled, (state, action) => {
         state.loading = false;
-        const { taskId, data } = action.payload;
+        const { taskId, data } = action.payload.data;
         const taskIndex = state.tasks.findIndex((task) => task.id === taskId);
         state.tasks[taskIndex] = data;
       });
@@ -133,7 +135,7 @@ const taskListSlice = createSlice({
       })
       .addCase(createSubTask.fulfilled, (state, action) => {
         state.loading = false;
-        const { taskId, data } = action.payload;
+        const { taskId, data } = action.payload.data;
         const taskIndex = state.tasks.findIndex((task) => task.id === taskId);
         state.tasks[taskIndex].subTasks?.push(data);
       });
@@ -147,7 +149,7 @@ const taskListSlice = createSlice({
       })
       .addCase(updateSubTask.fulfilled, (state, action) => {
         state.loading = false;
-        const { taskId, subTaskId, data } = action.payload;
+        const { taskId, subTaskId, data } = action.payload.data;
         const task = state.tasks;
         const taskIndex = task.findIndex((task) => task.id === taskId);
         const subTasks = task[taskIndex].subTasks;
