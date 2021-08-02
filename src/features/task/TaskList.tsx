@@ -1,88 +1,19 @@
-import React, {
-  useState,
-  Fragment,
-  FC,
-  SyntheticEvent,
-  useEffect,
-  FormEvent,
-} from "react";
+import React, { useState, Fragment, FC, useEffect } from "react";
 import styled from "styled-components";
 
-import {
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Collapse,
-  Checkbox,
-  ListItemSecondaryAction,
-  Paper,
-  TextField,
-  Button,
-  LinearProgress,
-  Snackbar,
-} from "@material-ui/core";
+import { List, Paper, LinearProgress, Snackbar } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import {
-  selectTask,
-  fetchTasks,
-  createTask,
-  updateTask,
-  Task,
-  updateSubTask,
-  SubTask,
-  createSubTask,
-} from "./taskListSlice";
-import useForm from "../../app/useForm";
-
-interface Form {
-  task: string;
-  subTask: { [k in number]: string };
-}
+import { selectTask } from "./taskListSlice";
+import { fetchTasks } from "./taskListAPI";
+import SubTaskBox from "./components/SubTaskBox";
+import TaskBox from "./components/TaskBox";
+import TaskHeader from "./components/TaskHeader";
 
 const TaskList: FC = () => {
   const task = useAppSelector(selectTask);
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(-1);
-  const form = useForm<Form>({
-    task: "",
-    subTask: {},
-  });
-
-  const handleClick = (taskIndex: number) => () => {
-    if (open === taskIndex) return setOpen(-1);
-    setOpen(taskIndex);
-  };
-
-  const handleCreateTask = (e: FormEvent) => {
-    e.preventDefault();
-    dispatch(createTask({ title: form.values.task }));
-  };
-
-  const handleToggleTask = (task: Task) => (e: SyntheticEvent) => {
-    e.stopPropagation();
-    dispatch(updateTask({ taskId: task.id, done: !task.done }));
-  };
-
-  const handleCreateSubTask = (task: Task) => (e: FormEvent) => {
-    e.preventDefault();
-    dispatch(
-      createSubTask({ taskId: task.id, title: form.values.subTask[task.id] })
-    );
-  };
-
-  const handleToggleSubTask = (subTask: SubTask) => (e: SyntheticEvent) => {
-    e.stopPropagation();
-    dispatch(
-      updateSubTask({
-        taskId: subTask.parentId,
-        subTaskId: subTask.id,
-        done: !subTask.done,
-      })
-    );
-  };
 
   useEffect(() => {
     dispatch(fetchTasks());
@@ -95,78 +26,20 @@ const TaskList: FC = () => {
         <Snackbar open={!!task.error} autoHideDuration={6000}>
           <Alert severity="error">{task.error}</Alert>
         </Snackbar>
-        <List
-          subheader={
-            <HeadBox onSubmit={handleCreateTask}>
-              <HeadText>Todo</HeadText>
-              <TextField
-                label="new task name"
-                value={form.values.task}
-                onChange={(e) => form.onChange("task")(e.target.value)}
-              />
-              <Button variant="contained" color="primary" type="submit">
-                Create
-              </Button>
-            </HeadBox>
-          }
-        >
+        <List subheader={<TaskHeader />}>
           {task.tasks.map((task, taskIndex) => {
             const taskKey = task.title + taskIndex;
-            const label = task.title;
             const isOpen = taskIndex === open;
             const subTasks = task.subTasks;
-            const checked = task.done;
             return (
               <Fragment key={taskKey}>
-                <ListItem button onClick={handleClick(taskIndex)}>
-                  <ListItemIcon onClick={handleToggleTask(task)}>
-                    <Checkbox checked={checked} />
-                  </ListItemIcon>
-                  <ListItemText primary={label} />
-                  {subTasks && (
-                    <ListItemSecondaryAction>
-                      <ArrowIcon isOpen={isOpen} />
-                    </ListItemSecondaryAction>
-                  )}
-                </ListItem>
-                <Collapse in={isOpen} timeout="auto" unmountOnExit>
-                  <List
-                    component="form"
-                    onSubmit={handleCreateSubTask(task)}
-                    disablePadding
-                  >
-                    {subTasks?.map((subTask, subTaskIndex) => {
-                      const subTaskKey = subTask.title + subTaskIndex;
-                      const subTaskLabel = subTask.title;
-                      const subTaskChecked = subTask.done;
-                      return (
-                        <SubList button key={subTaskKey}>
-                          <ListItemIcon onClick={handleToggleSubTask(subTask)}>
-                            <Checkbox checked={subTaskChecked} />
-                          </ListItemIcon>
-                          <ListItemText primary={subTaskLabel} />
-                        </SubList>
-                      );
-                    })}
-                    <SubList button>
-                      <TextField
-                        label="sub task"
-                        fullWidth
-                        value={form.values.subTask[task.id]}
-                        onChange={(e) => {
-                          const value = { ...form.values.subTask };
-                          value[task.id] = e.target.value;
-                          return form.onChange("subTask")(value);
-                        }}
-                      />
-                      <ListItemSecondaryAction>
-                        <Button color="primary" type="submit">
-                          Create
-                        </Button>
-                      </ListItemSecondaryAction>
-                    </SubList>
-                  </List>
-                </Collapse>
+                <TaskBox
+                  task={task}
+                  taskIndex={taskIndex}
+                  open={open}
+                  setOpen={setOpen}
+                />
+                <SubTaskBox isOpen={isOpen} task={task} subTasks={subTasks} />
               </Fragment>
             );
           })}
@@ -175,14 +48,6 @@ const TaskList: FC = () => {
     </Wrapper>
   );
 };
-
-interface IArrowIcon {
-  isOpen: boolean;
-}
-const ArrowIcon = styled<FC<IArrowIcon>>(ExpandMoreIcon)`
-  transition: 200ms;
-  transform: rotateX(${(p) => (p.isOpen ? "180deg" : "0")});
-`;
 
 const Wrapper = styled.div`
   display: flex;
@@ -194,23 +59,5 @@ const Wrapper = styled.div`
 `;
 
 const ListBox = styled(Paper)``;
-
-const SubList = styled(ListItem)`
-  padding-left: 32px !important;
-`;
-
-const HeadText = styled.h1`
-  text-align: center;
-`;
-
-const HeadBox = styled.form`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  row-gap: 8px;
-  margin: 16px 0;
-`;
 
 export default TaskList;
