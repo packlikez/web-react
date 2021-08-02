@@ -1,6 +1,7 @@
-import React, { FormEvent } from "react";
+import React, { FormEvent, FC } from "react";
 import { TextField, Button } from "@material-ui/core";
 import styled from "styled-components";
+
 import { createTask } from "../taskListAPI";
 import useForm from "../../../app/useForm";
 import { useAppDispatch } from "../../../app/hooks";
@@ -9,7 +10,7 @@ interface Form {
   task: string;
 }
 
-const TaskHeader = () => {
+const TaskHeader: FC = () => {
   const dispatch = useAppDispatch();
   const form = useForm<Form>({
     task: "",
