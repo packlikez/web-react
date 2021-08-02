@@ -22,7 +22,13 @@ import {
 } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { useAppSelector, useAppDispatch } from "../app/hooks";
-import { selectTask, fetchTasks, createTask } from "./taskListSlice";
+import {
+  selectTask,
+  fetchTasks,
+  createTask,
+  updateTask,
+  Task,
+} from "./taskListSlice";
 import useForm from "../app/useForm";
 
 const TaskList = () => {
@@ -34,15 +40,6 @@ const TaskList = () => {
   const handleClick = (taskIndex: number) => () => {
     if (open === taskIndex) return setOpen(-1);
     setOpen(taskIndex);
-  };
-
-  const handleCheck = (taskIndex: number) => (e: SyntheticEvent) => {
-    e.stopPropagation();
-
-    // setTodos((prevState) => {
-    //   prevState[taskIndex].done = !prevState[taskIndex].done;
-    //   return [...prevState];
-    // });
   };
 
   const handleSubTaskCheck =
@@ -61,6 +58,16 @@ const TaskList = () => {
 
   const handleCreateTask = () => {
     dispatch(createTask({ title: form.values.task }));
+  };
+
+  const handleToggleTask = (task: Task) => (e: SyntheticEvent) => {
+    e.stopPropagation();
+    dispatch(updateTask({ taskId: task.id, done: !task.done }));
+
+    // setTodos((prevState) => {
+    //   prevState[taskIndex].done = !prevState[taskIndex].done;
+    //   return [...prevState];
+    // });
   };
 
   useEffect(() => {
@@ -99,7 +106,7 @@ const TaskList = () => {
             return (
               <Fragment key={taskKey}>
                 <ListItem button onClick={handleClick(taskIndex)}>
-                  <ListItemIcon onClick={handleCheck(taskIndex)}>
+                  <ListItemIcon onClick={handleToggleTask(task)}>
                     <Checkbox checked={checked} />
                   </ListItemIcon>
                   <ListItemText primary={label} />

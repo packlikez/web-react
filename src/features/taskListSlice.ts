@@ -5,8 +5,8 @@ import { RootState } from "../app/store";
 
 const name = "taskList";
 
-interface Task {
-  id?: number;
+export interface Task {
+  id: number;
   title: string;
   done: boolean;
   subTasks: SubTask[];
@@ -50,7 +50,7 @@ export const updateTask = createAsyncThunk(
     const { taskId, done } = payload;
     const url = `/tasks/${taskId}`;
     const res = await http.patch(url, { done });
-    return { taskId, data: res.data };
+    return { taskId, data: res.data.data };
   }
 );
 
@@ -121,9 +121,12 @@ const taskListSlice = createSlice({
       })
       .addCase(updateTask.fulfilled, (state, action) => {
         state.loading = false;
-        const { taskId, data } = action.payload.data;
+        const { taskId, data } = action.payload;
         const taskIndex = state.tasks.findIndex((task) => task.id === taskId);
-        state.tasks[taskIndex] = data;
+        state.tasks[taskIndex] = {
+          ...data,
+          subTasks: state.tasks[taskIndex].subTasks,
+        };
       });
 
     builder
