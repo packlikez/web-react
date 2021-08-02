@@ -81,7 +81,7 @@ export const updateSubTask = createAsyncThunk(
     const { taskId, subTaskId, done } = payload;
     const url = `/tasks/${taskId}/subTasks/${subTaskId}`;
     const res = await http.patch(url, { done });
-    return { taskId, subTaskId, data: res.data };
+    return { taskId, subTaskId, data: res.data.data };
   }
 );
 
@@ -151,11 +151,13 @@ const taskListSlice = createSlice({
       })
       .addCase(updateSubTask.fulfilled, (state, action) => {
         state.loading = false;
-        const { taskId, subTaskId, data } = action.payload.data;
-        const task = state.tasks;
-        const taskIndex = task.findIndex((task) => task.id === taskId);
-        const subTasks = task[taskIndex].subTasks;
-        if (subTasks) {
+        const { taskId, subTaskId, data } = action.payload;
+        const tasks = state.tasks;
+        const taskIndex = tasks.findIndex((task) => task.id === taskId);
+        if (taskIndex !== -1) {
+          if (!data.done) tasks[taskIndex].done = false;
+
+          const subTasks = tasks[taskIndex].subTasks;
           const subTaskIndex = subTasks.findIndex(
             (subTask) => subTask.id === subTaskId
           );
