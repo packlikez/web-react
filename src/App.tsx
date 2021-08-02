@@ -14,10 +14,8 @@ const App: FC = () => {
 const Wrapper = styled.div`
   display: flex;
   justify-content: center;
-  align-items: center;
 
-  height: 100vh;
-  background-color: cadetblue;
+  margin: 48px 0;
 `;
 
 export default App;

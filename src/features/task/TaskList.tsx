@@ -52,7 +52,9 @@ const TaskList: FC = () => {
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: center;
 
+  overflow: auto;
   row-gap: 8px;
   width: 100%;
   max-width: 360px;
