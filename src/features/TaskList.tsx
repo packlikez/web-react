@@ -4,6 +4,7 @@ import React, {
   FC,
   SyntheticEvent,
   useEffect,
+  FormEvent,
 } from "react";
 import styled from "styled-components";
 
@@ -54,7 +55,8 @@ const TaskList = () => {
     setOpen(taskIndex);
   };
 
-  const handleCreateTask = () => {
+  const handleCreateTask = (e: FormEvent) => {
+    e.preventDefault();
     dispatch(createTask({ title: form.values.task }));
   };
 
@@ -63,7 +65,8 @@ const TaskList = () => {
     dispatch(updateTask({ taskId: task.id, done: !task.done }));
   };
 
-  const handleCreateSubTask = (task: Task) => () => {
+  const handleCreateSubTask = (task: Task) => (e: FormEvent) => {
+    e.preventDefault();
     dispatch(
       createSubTask({ taskId: task.id, title: form.values.subTask[task.id] })
     );
@@ -90,18 +93,14 @@ const TaskList = () => {
         {task.loading && <LinearProgress />}
         <List
           subheader={
-            <HeadBox>
+            <HeadBox onSubmit={handleCreateTask}>
               <HeadText>Todo</HeadText>
               <TextField
                 label="new task name"
                 value={form.values.task}
                 onChange={(e) => form.onChange("task")(e.target.value)}
               />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleCreateTask}
-              >
+              <Button variant="contained" color="primary" type="submit">
                 Create
               </Button>
             </HeadBox>
@@ -127,7 +126,11 @@ const TaskList = () => {
                   )}
                 </ListItem>
                 <Collapse in={isOpen} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding>
+                  <List
+                    component="form"
+                    onSubmit={handleCreateSubTask(task)}
+                    disablePadding
+                  >
                     {subTasks?.map((subTask, subTaskIndex) => {
                       const subTaskKey = subTask.title + subTaskIndex;
                       const subTaskLabel = subTask.title;
@@ -154,10 +157,7 @@ const TaskList = () => {
                         }}
                       />
                       <ListItemSecondaryAction>
-                        <Button
-                          color="primary"
-                          onClick={handleCreateSubTask(task)}
-                        >
+                        <Button color="primary" type="submit">
                           Create
                         </Button>
                       </ListItemSecondaryAction>
@@ -200,7 +200,7 @@ const HeadText = styled.h1`
   text-align: center;
 `;
 
-const HeadBox = styled.div`
+const HeadBox = styled.form`
   display: flex;
   flex-direction: column;
   justify-content: center;
