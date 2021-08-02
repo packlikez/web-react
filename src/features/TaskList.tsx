@@ -33,7 +33,7 @@ const todosMock = [
   },
 ];
 
-const MyComponent = () => {
+const TaskList = () => {
   const [todos, setTodos] = useState(todosMock);
   const [open, setOpen] = useState(-1);
 
@@ -151,4 +151,4 @@ const HeadText = styled.h1`
   text-align: center;
 `;
 
-export default MyComponent;
+export default TaskList;
