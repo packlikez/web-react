@@ -28,33 +28,31 @@ import {
   createTask,
   updateTask,
   Task,
+  updateSubTask,
+  SubTask,
+  createSubTask,
 } from "./taskListSlice";
 import useForm from "../app/useForm";
+
+interface Form {
+  task: string;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  subTask: { [k in number]: string };
+}
 
 const TaskList = () => {
   const task = useAppSelector(selectTask);
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(-1);
-  const form = useForm<{ task: string }>({ task: "" });
+  const form = useForm<Form>({
+    task: "",
+    subTask: {},
+  });
 
   const handleClick = (taskIndex: number) => () => {
     if (open === taskIndex) return setOpen(-1);
     setOpen(taskIndex);
   };
-
-  const handleSubTaskCheck =
-    (taskIndex: number, subTaskIndex: number) => (e: SyntheticEvent) => {
-      e.stopPropagation();
-
-      // setTodos((prevState) => {
-      //   const prevSubTasks = prevState[taskIndex].subTasks;
-      //   if (!prevSubTasks) return prevState;
-      //
-      //   prevSubTasks[subTaskIndex].done = !prevSubTasks[subTaskIndex].done;
-      //
-      //   return [...prevState];
-      // });
-    };
 
   const handleCreateTask = () => {
     dispatch(createTask({ title: form.values.task }));
@@ -63,11 +61,23 @@ const TaskList = () => {
   const handleToggleTask = (task: Task) => (e: SyntheticEvent) => {
     e.stopPropagation();
     dispatch(updateTask({ taskId: task.id, done: !task.done }));
+  };
 
-    // setTodos((prevState) => {
-    //   prevState[taskIndex].done = !prevState[taskIndex].done;
-    //   return [...prevState];
-    // });
+  const handleCreateSubTask = (task: Task) => () => {
+    dispatch(
+      createSubTask({ taskId: task.id, title: form.values.subTask[task.id] })
+    );
+  };
+
+  const handleToggleSubTask = (subTask: SubTask) => (e: SyntheticEvent) => {
+    e.stopPropagation();
+    dispatch(
+      updateSubTask({
+        taskId: subTask.parentId,
+        subTaskId: subTask.id,
+        done: !subTask.done,
+      })
+    );
   };
 
   useEffect(() => {
@@ -121,15 +131,11 @@ const TaskList = () => {
                     {subTasks?.map((subTask, subTaskIndex) => {
                       const subTaskKey = subTask.title + subTaskIndex;
                       const subTaskLabel = subTask.title;
+                      console.log(subTask);
                       const subTaskChecked = subTask.done;
                       return (
                         <SubList button key={subTaskKey}>
-                          <ListItemIcon
-                            onClick={handleSubTaskCheck(
-                              taskIndex,
-                              subTaskIndex
-                            )}
-                          >
+                          <ListItemIcon onClick={handleToggleSubTask(subTask)}>
                             <Checkbox checked={subTaskChecked} />
                           </ListItemIcon>
                           <ListItemText primary={subTaskLabel} />
@@ -137,9 +143,23 @@ const TaskList = () => {
                       );
                     })}
                     <SubList button>
-                      <TextField label="sub task" fullWidth />
+                      <TextField
+                        label="sub task"
+                        fullWidth
+                        value={form.values.subTask[task.id]}
+                        onChange={(e) => {
+                          const value = { ...form.values.subTask };
+                          value[task.id] = e.target.value;
+                          return form.onChange("subTask")(value);
+                        }}
+                      />
                       <ListItemSecondaryAction>
-                        <Button color="primary">Create</Button>
+                        <Button
+                          color="primary"
+                          onClick={handleCreateSubTask(task)}
+                        >
+                          Create
+                        </Button>
                       </ListItemSecondaryAction>
                     </SubList>
                   </List>

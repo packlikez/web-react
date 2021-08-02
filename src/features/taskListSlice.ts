@@ -11,7 +11,9 @@ export interface Task {
   done: boolean;
   subTasks: SubTask[];
 }
-type SubTask = Omit<Task, "subTasks">;
+export interface SubTask extends Omit<Task, "subTasks"> {
+  parentId: number;
+}
 
 type CreateTask = Pick<Task, "title">;
 
@@ -56,29 +58,29 @@ export const updateTask = createAsyncThunk(
 
 interface CreateSubTaskPayload {
   taskId: number;
-  data: SubTask;
+  title: string;
 }
 export const createSubTask = createAsyncThunk(
   name + "/createSubTask",
   async (payload: CreateSubTaskPayload) => {
-    const { taskId, data } = payload;
+    const { taskId, title } = payload;
     const url = `/tasks/${taskId}/subTasks`;
-    const res = await http.post(url, data);
-    return { taskId, data: res.data };
+    const res = await http.post(url, { title });
+    return { taskId, data: res.data.data };
   }
 );
 
 interface UpdateSubTaskPayload {
   taskId: number;
   subTaskId: number;
-  data: SubTask;
+  done: boolean;
 }
 export const updateSubTask = createAsyncThunk(
   name + "/updateSubTask",
   async (payload: UpdateSubTaskPayload) => {
-    const { taskId, subTaskId, data } = payload;
+    const { taskId, subTaskId, done } = payload;
     const url = `/tasks/${taskId}/subTasks/${subTaskId}`;
-    const res = await http.patch(url, data);
+    const res = await http.patch(url, { done });
     return { taskId, subTaskId, data: res.data };
   }
 );
@@ -135,7 +137,7 @@ const taskListSlice = createSlice({
       })
       .addCase(createSubTask.fulfilled, (state, action) => {
         state.loading = false;
-        const { taskId, data } = action.payload.data;
+        const { taskId, data } = action.payload;
         const taskIndex = state.tasks.findIndex((task) => task.id === taskId);
         state.tasks[taskIndex].subTasks?.push(data);
       });
