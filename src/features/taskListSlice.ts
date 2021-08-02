@@ -123,10 +123,7 @@ const taskListSlice = createSlice({
         state.loading = false;
         const { taskId, data } = action.payload;
         const taskIndex = state.tasks.findIndex((task) => task.id === taskId);
-        state.tasks[taskIndex] = {
-          ...data,
-          subTasks: state.tasks[taskIndex].subTasks,
-        };
+        state.tasks[taskIndex] = data;
       });
 
     builder
