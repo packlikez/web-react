@@ -10,6 +10,9 @@ import {
   Checkbox,
   ListItemSecondaryAction,
   Paper,
+  TextField,
+  Button,
+  LinearProgress,
 } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
@@ -25,7 +28,10 @@ const todosMock = [
   {
     label: "Task3",
     done: false,
-    subTasks: [{ label: "Sub Task 1", done: false }],
+    subTasks: [
+      { label: "Sub Task 1", done: false },
+      { label: "Sub Task 1", done: false },
+    ],
   },
   {
     label: "Task4",
@@ -68,7 +74,18 @@ const TaskList = () => {
   return (
     <Wrapper>
       <ListBox elevation={3}>
-        <List subheader={<HeadText>Todo</HeadText>}>
+        <LinearProgress />
+        <List
+          subheader={
+            <HeadBox>
+              <HeadText>Todo</HeadText>
+              <TextField label="new task name" />
+              <Button variant="contained" color="primary">
+                Create
+              </Button>
+            </HeadBox>
+          }
+        >
           {todos.map((task, taskIndex) => {
             const taskKey = task.label + taskIndex;
             const label = task.label;
@@ -88,19 +105,14 @@ const TaskList = () => {
                     </ListItemSecondaryAction>
                   )}
                 </ListItem>
-                {subTasks?.map((subTask, subTaskIndex) => {
-                  const subTaskKey = subTask.label + subTaskIndex;
-                  const subTaskLabel = subTask.label;
-                  const subTaskChecked = subTask.done;
-                  return (
-                    <Collapse
-                      key={subTaskKey}
-                      in={isOpen}
-                      timeout="auto"
-                      unmountOnExit
-                    >
-                      <List component="div" disablePadding>
-                        <SubList button>
+                <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {subTasks?.map((subTask, subTaskIndex) => {
+                      const subTaskKey = subTask.label + subTaskIndex;
+                      const subTaskLabel = subTask.label;
+                      const subTaskChecked = subTask.done;
+                      return (
+                        <SubList button key={subTaskKey}>
                           <ListItemIcon
                             onClick={handleSubTaskCheck(
                               taskIndex,
@@ -111,10 +123,16 @@ const TaskList = () => {
                           </ListItemIcon>
                           <ListItemText primary={subTaskLabel} />
                         </SubList>
-                      </List>
-                    </Collapse>
-                  );
-                })}
+                      );
+                    })}
+                    <SubList button>
+                      <TextField label="sub task" fullWidth />
+                      <ListItemSecondaryAction>
+                        <Button color="primary">Create</Button>
+                      </ListItemSecondaryAction>
+                    </SubList>
+                  </List>
+                </Collapse>
               </Fragment>
             );
           })}
@@ -149,6 +167,16 @@ const SubList = styled(ListItem)`
 
 const HeadText = styled.h1`
   text-align: center;
+`;
+
+const HeadBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  row-gap: 8px;
+  margin: 16px 0;
 `;
 
 export default TaskList;
