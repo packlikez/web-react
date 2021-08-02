@@ -15,6 +15,8 @@ import {
   LinearProgress,
 } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import { useAppSelector } from "../app/hooks";
+import { selectTask } from "./taskListSlice";
 
 const todosMock = [
   {
@@ -40,7 +42,7 @@ const todosMock = [
 ];
 
 const TaskList = () => {
-  const [todos, setTodos] = useState(todosMock);
+  const task = useAppSelector(selectTask);
   const [open, setOpen] = useState(-1);
 
   const handleClick = (taskIndex: number) => () => {
@@ -51,30 +53,30 @@ const TaskList = () => {
   const handleCheck = (taskIndex: number) => (e: SyntheticEvent) => {
     e.stopPropagation();
 
-    setTodos((prevState) => {
-      prevState[taskIndex].done = !prevState[taskIndex].done;
-      return [...prevState];
-    });
+    // setTodos((prevState) => {
+    //   prevState[taskIndex].done = !prevState[taskIndex].done;
+    //   return [...prevState];
+    // });
   };
 
   const handleSubTaskCheck =
     (taskIndex: number, subTaskIndex: number) => (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      setTodos((prevState) => {
-        const prevSubTasks = prevState[taskIndex].subTasks;
-        if (!prevSubTasks) return prevState;
-
-        prevSubTasks[subTaskIndex].done = !prevSubTasks[subTaskIndex].done;
-
-        return [...prevState];
-      });
+      // setTodos((prevState) => {
+      //   const prevSubTasks = prevState[taskIndex].subTasks;
+      //   if (!prevSubTasks) return prevState;
+      //
+      //   prevSubTasks[subTaskIndex].done = !prevSubTasks[subTaskIndex].done;
+      //
+      //   return [...prevState];
+      // });
     };
 
   return (
     <Wrapper>
       <ListBox elevation={3}>
-        <LinearProgress />
+        {task.loading && <LinearProgress />}
         <List
           subheader={
             <HeadBox>
@@ -86,7 +88,7 @@ const TaskList = () => {
             </HeadBox>
           }
         >
-          {todos.map((task, taskIndex) => {
+          {task.tasks.map((task, taskIndex) => {
             const taskKey = task.label + taskIndex;
             const label = task.label;
             const isOpen = taskIndex === open;
